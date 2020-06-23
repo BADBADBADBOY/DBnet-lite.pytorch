@@ -37,9 +37,9 @@ python3 inference.py
 
 ## ToDoList
 - [x] tranform DB code format from MhLiao/DB
-- [] add light backbone
-- [] pruned big model by channel clipping
-- [] Model distillation
+- [ ] add light backbone
+- [ ] pruned big model by channel clipping
+- [ ] Model distillation
 
 
 
