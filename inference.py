@@ -42,7 +42,7 @@ def test_net(args):
     files = glob.glob(os.path.join(args.test_dir, '*.jpg'))
     model = DBNet(args.model_name, adaptive=False).cuda()
 
-    model_dict = torch.load(args.checkpoint)
+    model_dict = torch.load(args.checkpoint)['state_dict']
     state = model.state_dict()
     for key in state.keys():
         if key in model_dict.keys():

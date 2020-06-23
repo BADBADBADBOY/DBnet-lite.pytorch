@@ -169,7 +169,7 @@ if __name__ == '__main__':
                         help='show step')
     parser.add_argument('--num_worker', nargs='?', type=int, default=0,
                         help='num_worker to get data')
-    parser.add_argument('--resume', default='./checkpoints/DB_deformable_resnet18_bs_16_ep_1200/DB.pth.tar', type=str, metavar='PATH',  #
+    parser.add_argument('--resume', default='', type=str, metavar='PATH',  #
                         help='model to load')
     parser.add_argument('--checkpoints', default='', type=str, metavar='PATH',  #
                         help='path to save checkpoints (default: checkpoints)')
