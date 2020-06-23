@@ -1,5 +1,11 @@
 # DBNet-lite-pytorch
 
+#### setup
+
+```
+cd models/dcn/
+python setup.py build_ext --inplace
+```
 
 ***
 
