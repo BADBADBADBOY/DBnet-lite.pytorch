@@ -43,7 +43,7 @@ class DiceLoss(nn.Module):
         return loss
 
 
-def dice_loss(input, target, mask):
+def dice_loss(input, target, mask,eps=1e-6):
     input = input.contiguous().view(input.size()[0], -1)
     target = target.contiguous().view(target.size()[0], -1)
     mask = mask.contiguous().view(mask.size()[0], -1)
@@ -52,8 +52,8 @@ def dice_loss(input, target, mask):
     target = target * mask
 
     a = torch.sum(input * target, 1)
-    b = torch.sum(input * input, 1) + 0.001
-    c = torch.sum(target * target, 1) + 0.001
+    b = torch.sum(input * input, 1) + eps
+    c = torch.sum(target * target, 1) + eps
     d = (2 * a) / (b + c)
     dice_loss = torch.mean(d)
     return 1 - dice_loss

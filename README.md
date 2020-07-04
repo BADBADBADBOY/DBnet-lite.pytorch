@@ -4,14 +4,34 @@
 
 ```
 cd models/dcn/
-python setup.py build_ext --inplace
+sh make.sh
 ```
 
 ***
 
-#### data format
+#### data format for Horizontal or slanted text
+
 follow icdar15 dataset format, x1,y1,x2,y2,x3,y3,x4,y4,label
 ```
+
+image
+│   1.jpg
+│   2.jpg   
+│		...
+label
+│   gt_1.txt
+│   gt_2.txt
+|		...
+```
+***
+
+#### data format for curved text
+
+```
+dataset format, x1,y1,x2,y2,x3,y3,x4,y4 ...xn,yn,label 
+
+The number of N can be inconsistent,The arrangement of points is clockwise or counterclockwise
+
 image
 │   1.jpg
 │   2.jpg   
@@ -22,27 +42,48 @@ label
 |		...
 ```
 
-
 ***
 
 
 #### train 
 
+Go to configure config.yaml in the root directory
 
 ```
 python3 train.py 
 ```
+***
+
 
 #### test
+
+Go to configure config.yaml in the root directory
 
 ```
 python3 inference.py
 ```
+***
+#### Explanation of some parameters in config.yaml
+
+
 
 ***
 
-## ToDoList
+#### performance in icdar2015
+
+|Method| head|extra data|precision(%)| recall(%)  |   hmean(%)|model_file|
+| - | - | - | - | - | - |- |
+| Resnet18|FPN|no|86.11|   76.45|  80.99|[baiduyun](https://pan.baidu.com/s/1wmbGMoluWlZ97LCqOnwjOg) (extract code: p0bk)|
+***
+#### some result
+<img src="./show/1.jpg" width=600 height=480 />     
+<img src="./show/2.jpg" width=600 height=480 />
+
+***
+
+#### ToDoList
 - [x] tranform DB code format from MhLiao/DB
+- [x] add some performance
 - [ ] add light backbone
 - [ ] pruned big model by channel clipping
 - [ ] Model distillation
@@ -54,5 +95,6 @@ python3 inference.py
 
  1. https://github.com/whai362/PSENet
  2. https://github.com/MhLiao/DB
+ 3. https://github.com/Jzz24/pytorch_quantization
 
 

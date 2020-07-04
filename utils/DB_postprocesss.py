@@ -1,3 +1,12 @@
+"""
+#!-*- coding=utf-8 -*-
+@author: BADBADBADBADBOY
+@contact: 2441124901@qq.com
+@software: PyCharm Community Edition
+@file: DB_postprocesss.py
+@time: 2020/7/4 15:16
+
+"""
 import numpy as np
 import string
 import cv2
@@ -14,7 +23,62 @@ class DBPostProcess(object):
         self.thresh = params['thresh']
         self.box_thresh = params['box_thresh']
         self.max_candidates = params['max_candidates']
-        self.min_size = 3
+        self.is_poly = params['is_poly']
+        self.unclip_ratio = params['unclip_ratio']
+        self.min_size = params['min_size']
+        
+    def polygons_from_bitmap(self, pred, _bitmap, dest_width, dest_height):
+        '''
+        _bitmap: single map with shape (1, H, W),
+            whose values are binarized as {0, 1}
+        '''
+
+        
+        bitmap = _bitmap
+        pred = pred
+        height, width = bitmap.shape
+        boxes = []
+        scores = []
+
+        contours, _ = cv2.findContours(
+            (bitmap*255).astype(np.uint8),
+            cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+
+        for contour in contours[:self.max_candidates]:
+            epsilon = 0.001 * cv2.arcLength(contour, True)
+            approx = cv2.approxPolyDP(contour, epsilon, True)
+            points = approx.reshape((-1, 2))
+            if points.shape[0] < 4:
+                continue
+            # _, sside = self.get_mini_boxes(contour)
+            # if sside < self.min_size:
+            #     continue
+            score = self.box_score_fast(pred, points.reshape(-1, 2))
+            if self.box_thresh > score:
+                continue
+            
+            if points.shape[0] > 2:
+                box = self.unclip(points, self.unclip_ratio)
+                if len(box) > 1:
+                    continue
+            else:
+                continue
+            box = box.reshape(-1, 2)
+            _, sside = self.get_mini_boxes(box.reshape((-1, 1, 2)))
+            if sside < self.min_size + 2:
+                continue
+
+            if not isinstance(dest_width, int):
+                dest_width = dest_width.item()
+                dest_height = dest_height.item()
+            
+            box[:, 0] = np.clip(
+                np.round(box[:, 0] / width * dest_width), 0, dest_width)
+            box[:, 1] = np.clip(
+                np.round(box[:, 1] / height * dest_height), 0, dest_height)
+            boxes.append(box.tolist())
+            scores.append(score)
+        return boxes, scores
 
     def boxes_from_bitmap(self, pred, _bitmap, dest_width, dest_height):
         '''
@@ -45,7 +109,7 @@ class DBPostProcess(object):
             if self.box_thresh > score:
                 continue
 
-            box = self.unclip(points).reshape(-1, 1, 2)
+            box = self.unclip(points,self.unclip_ratio).reshape(-1, 1, 2)
             box, sside = self.get_mini_boxes(box)
             if sside < self.min_size + 2:
                 continue
@@ -112,21 +176,45 @@ class DBPostProcess(object):
         segmentation = pred > self.thresh
 
         boxes_batch = []
+        score_batch = []
         for batch_index in range(pred.shape[0]):
             height, width = pred.shape[-2:]
-            tmp_boxes, tmp_scores = self.boxes_from_bitmap(
-                pred[batch_index], segmentation[batch_index], width, height)
+            if(self.is_poly):
+                tmp_boxes, tmp_scores = self.polygons_from_bitmap(
+                    pred[batch_index], segmentation[batch_index], width, height)
 
-            boxes = []
-            for k in range(len(tmp_boxes)):
-                if tmp_scores[k] > self.box_thresh:
-                    boxes.append(tmp_boxes[k])
-            if len(boxes) > 0:
-                boxes = np.array(boxes)
+                boxes = []
+                score = []
+                for k in range(len(tmp_boxes)):
+                    if tmp_scores[k] > self.box_thresh:
+                        boxes.append(tmp_boxes[k])
+                        score.append(tmp_scores[k])
+                if len(boxes) > 0:
+                    ratio_w, ratio_h = ratio_list[batch_index]
+                    for i in range(len(boxes)):
+                        boxes[i] = np.array(boxes[i])
+                        boxes[i][:, 0] = boxes[i][:, 0] * ratio_w
+                        boxes[i][:, 1] = boxes[i][:, 1] * ratio_h
 
-                ratio_w, ratio_h = ratio_list[batch_index]
-                boxes[:, :, 0] = boxes[:, :, 0] * ratio_w
-                boxes[:, :, 1] = boxes[:, :, 1] * ratio_h
+                boxes_batch.append(boxes)
+                score_batch.append(score)
+            else:
+                tmp_boxes, tmp_scores = self.boxes_from_bitmap(
+                    pred[batch_index], segmentation[batch_index], width, height)
 
-            boxes_batch.append(boxes)
-        return boxes_batch
+                boxes = []
+                score = []
+                for k in range(len(tmp_boxes)):
+                    if tmp_scores[k] > self.box_thresh:
+                        boxes.append(tmp_boxes[k])
+                        score.append(tmp_scores[k])
+                if len(boxes) > 0:
+                    boxes = np.array(boxes)
+
+                    ratio_w, ratio_h = ratio_list[batch_index]
+                    boxes[:, :, 0] = boxes[:, :, 0] * ratio_w
+                    boxes[:, :, 1] = boxes[:, :, 1] * ratio_h
+
+                boxes_batch.append(boxes)
+                score_batch.append(score)
+        return boxes_batch,score_batch

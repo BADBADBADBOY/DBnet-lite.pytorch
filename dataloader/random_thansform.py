@@ -1,13 +1,33 @@
-#-*- coding:utf-8 _*-
 """
-@author:fxw
+#!-*- coding=utf-8 -*-
+@author: BADBADBADBADBOY
+@contact: 2441124901@qq.com
+@software: PyCharm Community Edition
 @file: random_thansform.py
-@time: 2020/04/28
+@time: 2020/7/4 15:16
+
 """
 import cv2
 import numpy as np
 import imgaug.augmenters as aug_img
 import imgaug
+import random
+def solve_polys(polys):
+    len_max = 0
+    for poly in polys:
+        if(len(poly)//2>len_max):
+            len_max = len(poly)//2
+    new_polys = []
+    for poly in polys:
+        new_poly = []
+        if(len(poly)//2<len_max):
+            new_poly.extend(poly)
+            for i in range(len(poly)//2,len_max):
+                new_poly.extend([poly[0],poly[1]])
+        else:
+            new_poly = poly
+        new_polys.append(new_poly)
+    return np.array(new_polys),len_max
 
 class RandomCropData():
     def __init__(self, max_tries=10,min_crop_side_ratio=0.1,crop_size=(640, 640)):
@@ -157,13 +177,14 @@ class Random_Augment():
         return img, new_polys
 
     def random_scale(self,img, polys, min_size):
+        polys,len_max = solve_polys(polys)
         h, w = img.shape[0:2]
         new_polys = []
         for poly in polys:
-            poly = np.asarray(poly) / ([w * 1.0, h * 1.0] * 4)
+            poly = np.asarray(poly)
+            poly = poly / ([w * 1.0, h * 1.0] * len_max)
             new_polys.append(poly)
         new_polys = np.array(new_polys)
-
         if max(h, w) > 1280:
             scale = 1280.0 / max(h, w)
             img = cv2.resize(img, dsize=None, fx=scale, fy=scale)
@@ -173,7 +194,7 @@ class Random_Augment():
         if min(h, w) * scale <= min_size:
             scale = (min_size + 10) * 1.0 / min(h, w)
         img = cv2.resize(img, dsize=None, fx=scale, fy=scale)
-        new_polys = np.reshape(new_polys * ([img.shape[1], img.shape[0]] * 4),
+        new_polys = np.reshape(new_polys * ([img.shape[1], img.shape[0]] * len_max),
                                (new_polys.shape[0], polys.shape[1] // 2, 2))
         return img, new_polys
 
@@ -189,7 +210,37 @@ class Random_Augment():
         else:
             new_polys = polys
         return img, new_polys
-    def random_crop(self,img, polys, dont_care):
+        
+    def random_crop_db(self,img, polys, dont_care):
         img, new_polys,new_dotcare = self.random_crop_data.process(img, polys, dont_care)
         return img, new_polys,new_dotcare
+
+    def random_crop_pse(self,imgs, img_size=(640, 640)):
+        h, w = imgs[0].shape[0:2]
+        th, tw = img_size
+        if w == tw and h == th:
+            return imgs
+
+        if random.random() > 3.0 / 8.0 and np.max(imgs[1]) > 0:
+            tl = np.min(np.where(imgs[1] > 0), axis=1) - img_size
+            tl[tl < 0] = 0
+            br = np.max(np.where(imgs[1] > 0), axis=1) - img_size
+            br[br < 0] = 0
+            br[0] = min(br[0], h - th)
+            br[1] = min(br[1], w - tw)
+
+            i = random.randint(tl[0], br[0])
+            j = random.randint(tl[1], br[1])
+        else:
+            i = random.randint(0, h - th)
+            j = random.randint(0, w - tw)
+
+        # return i, j, th, tw
+        for idx in range(len(imgs)):
+            if len(imgs[idx].shape) == 3:
+                imgs[idx] = imgs[idx][i:i + th, j:j + tw, :]
+            else:
+                imgs[idx] = imgs[idx][i:i + th, j:j + tw]
+        return imgs
+
 

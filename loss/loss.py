@@ -1,8 +1,11 @@
-#-*- coding:utf-8 _*-
 """
-@author:fxw
+#!-*- coding=utf-8 -*-
+@author: BADBADBADBADBOY
+@contact: 2441124901@qq.com
+@software: PyCharm Community Edition
 @file: loss.py
-@time: 2020/04/28
+@time: 2020/7/4 15:16
+
 """
 import torch.nn as nn
 from loss.dice_loss import DiceLoss,dice_loss
