@@ -10,7 +10,7 @@ train:
       start_val_epoch: 1000
       n_epoch: 1200
       batch_size: 16
-      base_lr: 0.001
+      base_lr: 0.002
       num_workers: 0
       show_step: 20
       print_format: 'linux'  # linux or windows

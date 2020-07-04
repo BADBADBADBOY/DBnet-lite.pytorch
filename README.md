@@ -1,6 +1,6 @@
 # DBNet-lite-pytorch
 
-#### setup
+## setup
 
 ```
 cd models/dcn/
@@ -9,7 +9,7 @@ sh make.sh
 
 ***
 
-#### data format for Horizontal or slanted text
+## data format for Horizontal or slanted text
 
 follow icdar15 dataset format, x1,y1,x2,y2,x3,y3,x4,y4,label
 ```
@@ -25,13 +25,13 @@ label
 ```
 ***
 
-#### data format for curved text
+## data format for curved text
 
-```
 dataset format, x1,y1,x2,y2,x3,y3,x4,y4 ...xn,yn,label 
 
 The number of N can be inconsistent,The arrangement of points is clockwise or counterclockwise
 
+```
 image
 │   1.jpg
 │   2.jpg   
@@ -45,7 +45,7 @@ label
 ***
 
 
-#### train 
+## train 
 
 Go to configure config.yaml in the root directory
 
@@ -55,29 +55,25 @@ python3 train.py
 ***
 
 
-#### test
+## test
 
-Go to configure config.yaml in the root directory
+set is_poly = True in config.yaml for curved text , others set is_poly = False
 
 ```
 python3 inference.py
 ```
 ***
-#### Explanation of some parameters in config.yaml
 
 
-
-***
-
-#### performance in icdar2015
+## performance in icdar2015
 
 |Method| head|extra data|precision(%)| recall(%)  |   hmean(%)|model_file|
 | - | - | - | - | - | - |- |
 | Resnet18|FPN|no|86.11|   76.45|  80.99|[baiduyun](https://pan.baidu.com/s/1wmbGMoluWlZ97LCqOnwjOg) (extract code: p0bk)|
 ***
-#### some result
-<img src="./show/1.jpg" width=600 height=480 />     
-<img src="./show/2.jpg" width=600 height=480 />
+## some result
+<img src="./show/1.jpg" width=800 height=500 />     
+<img src="./show/2.jpg" width=800 height=500 />
 
 ***
 
