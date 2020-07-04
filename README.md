@@ -5,6 +5,7 @@
 ## 环境配置
 
 ```
+pip install -r requirement.txt
 cd models/dcn/
 sh make.sh
 ```

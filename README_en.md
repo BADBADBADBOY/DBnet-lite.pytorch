@@ -5,6 +5,7 @@ English| [简体中文](README.md)
 ## setup
 
 ```
+pip install -r requirement.txt
 cd models/dcn/
 sh make.sh
 ```
