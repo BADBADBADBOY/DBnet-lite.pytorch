@@ -66,13 +66,39 @@ set is_poly = True in config.yaml for curved text , others set is_poly = False
 python3 inference.py
 ```
 ***
+## Channel clipping for model compression
 
+### Training section
+1. sparse training is performed first. firstly, modify config.yaml to set use_sr to True, and set sr_lr. the larger this setting is, the more pressure it will have.
+ pay attention to the fact that it may not converge if it is too large.
+
+```
+python3 train.py
+```
+2. Compression model
+Set the parameters of pruned part in config.yaml and run it
+```
+python3 ./pruned/prune.py
+```
+3. Re-finetune model
+Here, the accuracy will pick up quickly. Generally, you can train 50-100epoch and do your own experiments
+```
+python3 ./pruned/train_fintune.py
+```
+
+### test section
+
+```
+python3 ./pruned/prune_inference.py
+```
 
 ## performance in icdar2015
 
-|Method| head|extra data|precision(%)| recall(%)  |   hmean(%)|model_file|
-| - | - | - | - | - | - |- |
-| Resnet18|FPN|no|86.11|   76.45|  80.99|[baiduyun](https://pan.baidu.com/s/1wmbGMoluWlZ97LCqOnwjOg) (extract code: p0bk)|
+|Method| head|extra data|prune ratio|model size(M)|precision(%)| recall(%)  |   hmean(%)|model_file|
+| - | - | - | - | - | - |- | - |- |
+| Resnet18|FPN|no|0|62.6|86.11|   76.45|  80.99|[baiduyun](https://pan.baidu.com/s/1wmbGMoluWlZ97LCqOnwjOg) (extract code: p0bk)|
+| Resnet18|DB|no|0.8|20.1|85.55|   76.40|  80.72||
+
 ***
 ## some result
 <img src="./show/1.jpg" width=800 height=500 />     
