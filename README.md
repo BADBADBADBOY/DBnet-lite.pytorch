@@ -67,13 +67,40 @@ python3 train.py
 python3 inference.py
 ```
 ***
+## 模型压缩之通道剪裁
+
+### 训练部分
+1. 先进行稀疏训练，首先修改config.yaml将use_sr 设置为True，并设定sr_lr，这个设置越大压的越多，注意设置太大有可能不收敛.
+
+```
+python3 train.py 
+```
+2. 压缩模型
+设置好config.yaml中pruned部分参数，运行
+```
+python3 ./pruned/prune.py
+```
+3. 重新finetune模型
+这里精度会很快回升，一般可以训练50-100epoch，具体自己做实验
+```
+python3 ./pruned/train_fintune.py
+```
+
+### 测试部分
+
+```
+python3 ./pruned/prune_inference.py
+```
+
+***
 
 
 ## 在icdar2015的测试结果
 
-|Method| head|extra data|precision(%)| recall(%)  |   hmean(%)|model_file|
-| - | - | - | - | - | - |- |
-| Resnet18|FPN|no|86.11|   76.45|  80.99|[baiduyun](https://pan.baidu.com/s/1wmbGMoluWlZ97LCqOnwjOg) (extract code: p0bk)|
+|Method| head|extra data|prune ratio|model size(M)|precision(%)| recall(%)  |   hmean(%)|model_file|
+| - | - | - | - | - | - |- | - |- |
+| Resnet18|FPN|no|0|62.6|86.11|   76.45|  80.99|[baiduyun](https://pan.baidu.com/s/1wmbGMoluWlZ97LCqOnwjOg) (extract code: p0bk)|
+| Resnet18|DB|no|0.8|20.1|85.55|   76.40|  80.72||
 ***
 ## 在icdar2015的测试结果图
 <img src="./show/1.jpg" width=800 height=500 />     

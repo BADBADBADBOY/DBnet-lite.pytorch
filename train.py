@@ -1,16 +1,14 @@
+# -*- coding:utf-8 _*-
 """
-#!-*- coding=utf-8 -*-
-@author: BADBADBADBADBOY
-@contact: 2441124901@qq.com
-@software: PyCharm Community Edition
-@file: train.py
-@time: 2020/7/4 15:16
-
+@author:fxw
+@file: train.py.py
+@time: 2020/04/28
 """
 import sys
 sys.path.append('/home/aistudio/external-libraries')
 import os
 import torch
+import torch.nn as nn
 import yaml
 import argparse
 import numpy as np
@@ -28,6 +26,15 @@ from utils.set_optimizer import *
 torch.backends.cudnn.benchmark = False
 torch.backends.cudnn.deterministic = True
 
+def updateBN(model,config):
+    tag = 0 
+    for m in model.modules():
+        if(tag>69):
+            break
+        if isinstance(m, nn.BatchNorm2d):
+            if hasattr(m.weight, 'data'):
+                m.weight.grad.data.add_(config['train']['sr_lr']*torch.sign(m.weight.data)) #L1正则
+        tag+=1
 
 def set_seed(seed):
     import numpy as np
@@ -117,6 +124,8 @@ def train_net(config):
 
             optimizer.zero_grad()
             loss.backward()
+            if(config['train']['use_sr']):
+                updateBN(model,config)
             optimizer.step()
 
             score_binary = cal_binary_score(pre['binary'], gts, gt_masks.unsqueeze(1), running_metric_binary)

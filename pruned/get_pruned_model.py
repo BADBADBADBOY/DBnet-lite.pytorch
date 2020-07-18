@@ -1,108 +1,20 @@
-#-*- coding:utf-8 _*-
-"""
-@author:fxw
-@file: prune.py
-@time: 2020/07/17
-"""
 """
 #!-*- coding=utf-8 -*-
 @author: BADBADBADBADBOY
 @contact: 2441124901@qq.com
 @software: PyCharm Community Edition
-@file: prune.py
-@time: 2020/6/27 10:23
+@file: tt.py
+@time: 2020/6/20 10:51
 
 """
-import sys
 
-sys.path.append('/home/aistudio/external-libraries')
-sys.path.append('./')
-import yaml
-from models.DBNet import DBNet
+import models
 import torch
-import torch.nn as  nn
+import torch.nn as nn
 import numpy as np
-import collections
-import torchvision.transforms as transforms
-import cv2
-import os
-import argparse
-import math
-from PIL import Image
-from torch.autograd import Variable
 
 
-def prune(config):
-    os.environ["CUDA_VISIBLE_DEVICES"] = config['pruned']['gpu_id']
-
-    model = DBNet(config).cuda()
-    model_dict = torch.load(config['pruned']['checkpoints'])['state_dict']
-    state = model.state_dict()
-    for key in state.keys():
-        if key in model_dict.keys():
-            state[key] = model_dict[key]
-    model.load_state_dict(state)
-
-
-    bn_weights = []
-    for m in model.modules():
-        if (isinstance(m, nn.BatchNorm2d)):
-            bn_weights.append(m.weight.data.abs().clone())
-    bn_weights = torch.cat(bn_weights, 0)
-
-    sort_result, sort_index = torch.sort(bn_weights)
-
-    thresh_index = int(config['pruned']['cut_percent'] * bn_weights.shape[0])
-
-    if (thresh_index == bn_weights.shape[0]):
-        thresh_index = bn_weights.shape[0] - 1
-
-    prued = 0
-    prued_mask = []
-    bn_index = []
-    conv_index = []
-    remain_channel_nums = []
-    for k, m in enumerate(model.modules()):
-        if (k > 69):
-            break
-        if (isinstance(m, nn.BatchNorm2d)):
-            bn_weight = m.weight.data.clone()
-            mask = bn_weight.abs().gt(sort_result[thresh_index])
-            remain_channel = mask.sum()
-
-            if (remain_channel == 0):
-                remain_channel = 1
-                mask[int(torch.argmax(bn_weight))] = 1
-
-            v = 0
-            n = 1
-            if (remain_channel % config['pruned']['base_num'] != 0):
-                if (remain_channel > config['pruned']['base_num']):
-                    while (v < remain_channel):
-                        n += 1
-                        v = config['pruned']['base_num'] * n
-                    if (remain_channel - (v - config['pruned']['base_num']) < v - remain_channel):
-                        remain_channel = v - config['pruned']['base_num']
-                    else:
-                        remain_channel = v
-                    if (remain_channel > bn_weight.size()[0]):
-                        remain_channel = bn_weight.size()[0]
-                    remain_channel = torch.tensor(remain_channel)
-                    result, index = torch.sort(bn_weight)
-                    mask = bn_weight.abs().ge(result[-remain_channel])
-
-            remain_channel_nums.append(int(mask.sum()))
-            prued_mask.append(mask)
-            bn_index.append(k)
-            prued += mask.shape[0] - mask.sum()
-        elif (isinstance(m, nn.Conv2d)):
-            conv_index.append(k)
-    print('remain_channel_nums', remain_channel_nums)
-    print('total_prune_ratio:', float(prued) / bn_weights.shape[0])
-    print('bn_index', bn_index)
-
-    new_model = DBNet(config).cuda()
-
+def get_new_model(model, new_model, prued_mask, bn_index):
     merge1_index = [3, 12, 18]
     merge2_index = [25, 28, 34]
     merge3_index = [41, 44, 50]
@@ -140,8 +52,6 @@ def prune(config):
     for index in index_3:
         prued_mask[index] = mask4
 
-    print(model)
-
     ##############################################################
     index_bn = 0
     index_conv = 0
@@ -164,7 +74,7 @@ def prune(config):
             else:
                 m.in_channels = prued_mask[index_conv - 1].sum()
                 conv_in_mask.append(prued_mask[index_conv - 1])
-            m.out_channels = prued_mask[index_conv].sum()
+            m.out_channels = int(prued_mask[index_conv].sum())
             conv_out_mask.append(prued_mask[index_conv])
             index_conv += 1
         tag += 1
@@ -190,8 +100,8 @@ def prune(config):
     conv_i = 0
     scale_i = 0
     scale_mask = [mask4, mask3, mask2, mask1]
-    #     scale = [70,86,90,94] # FPN
-    scale = config['pruned']['scale']  # DB
+    #     scale = [70,86,90,94]  # FPN
+    scale = [73, 77, 81, 85]  # DB
     for [m0, m1] in zip(model.modules(), new_model.modules()):
         if (scale_i > 69):
             if isinstance(m0, nn.Conv2d):
@@ -250,15 +160,15 @@ def prune(config):
 
         scale_i += 1
 
-    print(new_model)
-
-    save_obj = {'prued_mask': prued_mask, 'bn_index': bn_index}
-    torch.save(save_obj, os.path.join(config['pruned']['save_checkpoints'], 'pruned_dict.dict'))
-    torch.save(new_model.state_dict(), os.path.join(config['pruned']['save_checkpoints'], 'pruned_dict.pth.tar'))
+    return new_model
 
 
-if __name__ == '__main__':
+def load_prune_model(model, pruned_model_dict_path):
+    _load = torch.load(pruned_model_dict_path)
+    prued_mask = _load['prued_mask']
+    bn_index = _load['bn_index']
+    prune_model = get_new_model(model, model, prued_mask, bn_index)
+    return prune_model
 
-    stream = open('./config.yaml', 'r', encoding='utf-8')
-    config = yaml.load(stream, Loader=yaml.FullLoader)
-    prune(config)
+
+

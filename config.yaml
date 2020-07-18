@@ -2,7 +2,7 @@ train:
       gpu_id: '0'
       backbone: 'resnet18'
       pretrained: True
-      HeadName: 'FPN'
+      HeadName: 'DB'
       in_channels: [64, 128, 256, 512]  #[256, 512, 1024, 2048] 
       inner_channels: 256
       k: 50
@@ -10,20 +10,22 @@ train:
       start_val_epoch: 1000
       n_epoch: 1200
       batch_size: 16
+      use_sr: True
+      sr_lr: 0.00001
       base_lr: 0.002
       num_workers: 0
-      show_step: 20
+      show_step: 5
       print_format: 'linux'  # linux or windows
       restore: True
-      resume: './checkpoints/DB_resnet18_bs_16_ep_1200/best_model.pth.tar'
+      resume: './checkpoints/DB_resnet18_bs_16_ep_1200/DB.pth.tar'
       checkpoints: './checkpoints'
       is_icdar2015: True
       is_transform: True
       is_show: False
       train_img_format: '.jpg'
       val_img_format: '.jpg'
-      train_img_dir: '/home/aistudio/work/data/icdar/train_img'
-      train_gt_dir: '/home/aistudio/work/data/icdar/train_gt'
+      train_img_dir: '/home/aistudio/work/data/icdar/train_img/'
+      train_gt_dir: '/home/aistudio/work/data/icdar/train_gt/'
       val_img_dir: '/home/aistudio/work/data/icdar/test_img/'
       val_gt_dir: '/home/aistudio/work/data/icdar/test_gt/'
       radom_angle: [-10, 10]
@@ -38,7 +40,7 @@ test:
       adaptive: False
       short_side: 736
       thresh: 0.5
-      box_thresh: 0.65
+      box_thresh: 0.6
       unclip_ratio: 2
       min_size: 3
       max_candidates: 1000
@@ -47,5 +49,35 @@ test:
       test_img_format: '.jpg'
       test_img_dir: '/home/aistudio/work/data/icdar/test_img/'
       test_gt_dir: '/home/aistudio/work/data/icdar/test_gt/'
-      checkpoints: '/home/aistudio/work/DBNet/DBNet.pytorch/checkpoints/DB_resnet18_bs_16_ep_1200/best_model.pth.tar'
+      checkpoints: './checkpoints/DB_resnet18_bs_16_ep_1200/DB.pth.tar'
       out_dir: './outputs_test'
+      
+pruned:
+      gpu_id: '0'
+      scale: [73, 77, 81, 85]  
+      base_num: 8
+      cut_percent: 0.8
+      pruned_checkpoints: './pruned/checkpoint/pruned_dict.pth.tar'
+      checkpoints_dict: './pruned/checkpoint/pruned_dict.dict'
+      save_checkpoints: './pruned/checkpoint'
+      checkpoints: './checkpoints/DB_resnet18_bs_16_ep_1200/DB.pth.tar'
+      finetune_lr: 0.0005
+      resume: './checkpoints/DB_resnet18_bs_16_ep_1200/DB.pth.tar'
+      restore: True
+      n_epoch: 100
+      start_val_epoch: 40
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      

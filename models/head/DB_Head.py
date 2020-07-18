@@ -30,21 +30,21 @@ class DB_Head(nn.Module):
         self.up4 = nn.Upsample(scale_factor=2, mode='nearest')
         self.up3 = nn.Upsample(scale_factor=2, mode='nearest')
 
-        self.in5 = ConvBnRelu(in_channels[-1], inner_channels, 1, bias=bias)
-        self.in4 = ConvBnRelu(in_channels[-2], inner_channels, 1, bias=bias)
-        self.in3 = ConvBnRelu(in_channels[-3], inner_channels, 1, bias=bias)
-        self.in2 = ConvBnRelu(in_channels[-4], inner_channels, 1, bias=bias)
+        self.in5 = ConvBnRelu(in_channels[-1], inner_channels, 1,stride=1, padding=0, bias=bias)
+        self.in4 = ConvBnRelu(in_channels[-2], inner_channels, 1,stride=1, padding=0, bias=bias)
+        self.in3 = ConvBnRelu(in_channels[-3], inner_channels, 1, stride=1, padding=0,bias=bias)
+        self.in2 = ConvBnRelu(in_channels[-4], inner_channels, 1,stride=1, padding=0, bias=bias)
 
         self.out5 = nn.Sequential(
-            ConvBnRelu(inner_channels, inner_channels //4, 3, padding=1, bias=bias),
+            ConvBnRelu(inner_channels, inner_channels //4, 3,stride=1, padding=1, bias=bias),
             nn.Upsample(scale_factor=8, mode='nearest'))
         self.out4 = nn.Sequential(
-            ConvBnRelu(inner_channels, inner_channels //4, 3, padding=1, bias=bias),
+            ConvBnRelu(inner_channels, inner_channels //4, 3, stride=1,padding=1, bias=bias),
             nn.Upsample(scale_factor=4, mode='nearest'))
         self.out3 = nn.Sequential(
-            ConvBnRelu(inner_channels, inner_channels //4, 3, padding=1, bias=bias),
+            ConvBnRelu(inner_channels, inner_channels //4, 3, stride=1,padding=1, bias=bias),
             nn.Upsample(scale_factor=2, mode='nearest'))
-        self.out2 = ConvBnRelu(inner_channels, inner_channels//4, 3, padding=1, bias=bias)
+        self.out2 = ConvBnRelu(inner_channels, inner_channels//4, 3, stride=1,padding=1, bias=bias)
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
