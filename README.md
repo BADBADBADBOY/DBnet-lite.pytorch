@@ -2,6 +2,9 @@
 
 # DBNet-lite-pytorch
 
+
+## 这个项目之后会在这里更新,我把之前的项目都做了下整合[pytorchOCR](https://github.com/BADBADBADBOY/pytorchOCR)
+
 ## 环境配置
 
 ```
