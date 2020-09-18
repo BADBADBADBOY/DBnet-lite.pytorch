@@ -72,7 +72,7 @@ class DataLoader(data.Dataset):
         polys, dontcare = get_bboxes(gt_path,self.config)
 
         if self.config['train']['is_transform']:
-            img, polys = self.ra.random_scale(img, polys, img.shape[0])
+            img, polys = self.ra.random_scale(img, polys, 640)
             img, polys = self.ra.random_rotate(img, polys,self.config['train']['radom_angle'])
             img, polys = self.ra.random_flip(img, polys)
             img, polys, dontcare = self.ra.random_crop_db(img, polys, dontcare)

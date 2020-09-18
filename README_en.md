@@ -98,6 +98,7 @@ python3 ./pruned/prune_inference.py
 | - | - | - | - | - | - |- | - |- |
 | Resnet18|FPN|no|0|62.6|86.11|   76.45|  80.99|[baiduyun](https://pan.baidu.com/s/1wmbGMoluWlZ97LCqOnwjOg) (extract code: p0bk)|
 | Resnet18|DB|no|0.8|20.1|85.55|   76.40|  80.72||
+| mobilev3|DB|no|0|2.5|85.55|   76.40| 74.71||
 
 ***
 ## some result
